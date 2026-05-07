@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Git Crashcourse</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface2: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --red: #f85149;
+      --orange: #d29922;
+      --purple: #bc8cff;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ─────────────────────────────────── */
+    header {
+      padding: 24px 32px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text);
+    }
+
+    header h1 .logo {
+      width: 36px; height: 36px;
+      background: var(--blue);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── NAV TABS ────────────────────────────────── */
+    nav {
+      display: flex;
+      gap: 4px;
+      margin: 24px auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    nav button {
+      padding: 8px 24px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: all .15s;
+    }
+
+    nav button.active {
+      background: var(--blue);
+      color: #fff;
+    }
+
+    nav button:not(.active):hover {
+      background: var(--surface2);
+      color: var(--text);
+    }
+
+    /* ── MAIN ────────────────────────────────────── */
+    main {
+      flex: 1;
+      padding: 32px 16px 48px;
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ── FLASHCARDS ──────────────────────────────── */
+    .fc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .fc-progress-text {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .fc-progress-bar-wrap {
+      height: 4px;
+      background: var(--surface2);
+      border-radius: 2px;
+      margin-bottom: 32px;
+      overflow: hidden;
+    }
+
+    .fc-progress-bar {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 2px;
+      transition: width .3s ease;
+    }
+
+    .btn-shuffle {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all .15s;
+    }
+    .btn-shuffle:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* Flip card */
+    .card-scene {
+      perspective: 1200px;
+      margin-bottom: 32px;
+      cursor: pointer;
+    }
+
+    .flip-card {
+      width: 100%;
+      height: 280px;
+      transform-style: preserve-3d;
+      transition: transform .55s cubic-bezier(.4,0,.2,1);
+      position: relative;
+    }
+
+    .flip-card.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 40px;
+      gap: 16px;
+      text-align: center;
+    }
+
+    .card-face.back { transform: rotateY(180deg); }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .card-face.front .card-label {
+      background: rgba(88,166,255,.15);
+      color: var(--blue);
+    }
+
+    .card-face.back .card-label {
+      background: rgba(63,185,80,.15);
+      color: var(--green);
+    }
+
+    .card-q-num {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      position: absolute;
+      top: 18px; left: 22px;
+    }
+
+    .card-face.front .card-text {
+      font-size: 1.2rem;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
+    .card-face.back .card-text {
+      font-size: 0.98rem;
+      line-height: 1.65;
+      color: var(--text);
+    }
+
+    .card-hint {
+      position: absolute;
+      bottom: 16px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Card nav buttons */
+    .card-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+    }
+
+    .btn-nav {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .15s;
+    }
+    .btn-nav:hover { border-color: var(--blue); color: var(--blue); }
+    .btn-nav:disabled { opacity: .3; cursor: default; }
+
+    .card-counter {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      min-width: 60px;
+      text-align: center;
+    }
+
+    /* Keyboard hint */
+    .kb-hint {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      margin-top: 20px;
+    }
+
+    .kb-hint kbd {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 0.75rem;
+    }
+
+    /* ── QUIZ ────────────────────────────────────── */
+    .quiz-start {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      padding: 60px 20px;
+      text-align: center;
+    }
+
+    .quiz-start h2 { font-size: 1.5rem; }
+
+    .quiz-start p {
+      color: var(--text-muted);
+      max-width: 440px;
+      line-height: 1.6;
+    }
+
+    .btn-primary {
+      padding: 12px 32px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: opacity .15s;
+    }
+    .btn-primary:hover { opacity: .85; }
+
+    .quiz-body { display: none; }
+
+    .q-progress {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .q-progress-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .q-progress-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 3px;
+      margin: 0 16px;
+      overflow: hidden;
+    }
+
+    .q-progress-bar {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 3px;
+      transition: width .3s ease;
+    }
+
+    .q-score-badge {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--green);
+    }
+
+    .q-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 36px 40px;
+      margin: 24px 0;
+    }
+
+    .q-num {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+    }
+
+    .q-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .q-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .q-option {
+      padding: 14px 18px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      text-align: left;
+      color: var(--text);
+      transition: all .15s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .q-option:hover:not(:disabled) {
+      border-color: var(--blue);
+      background: rgba(88,166,255,.08);
+    }
+
+    .q-option:disabled { cursor: default; }
+
+    .q-option.correct {
+      border-color: var(--green);
+      background: rgba(63,185,80,.12);
+      color: var(--green);
+    }
+
+    .q-option.wrong {
+      border-color: var(--red);
+      background: rgba(248,81,73,.12);
+      color: var(--red);
+    }
+
+    .q-option .opt-icon {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      transition: all .15s;
+    }
+
+    .q-option.correct .opt-icon {
+      border-color: var(--green);
+      background: var(--green);
+      color: #fff;
+    }
+
+    .q-option.wrong .opt-icon {
+      border-color: var(--red);
+      background: var(--red);
+      color: #fff;
+    }
+
+    .q-feedback {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      display: none;
+    }
+
+    .q-feedback.show { display: block; }
+    .q-feedback.ok { background: rgba(63,185,80,.1); border: 1px solid var(--green); color: var(--green); }
+    .q-feedback.nope { background: rgba(248,81,73,.1); border: 1px solid var(--red); color: #e6edf3; }
+
+    .q-feedback strong { color: var(--red); }
+    .q-feedback.ok strong { color: var(--green); }
+
+    .btn-next {
+      display: block;
+      margin: 20px 0 0 auto;
+      padding: 10px 28px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      transition: opacity .15s;
+      display: none;
+    }
+    .btn-next.show { display: block; }
+    .btn-next:hover { opacity: .85; }
+
+    /* Results */
+    .quiz-results {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      padding: 48px 20px;
+      text-align: center;
+    }
+
+    .quiz-results.show { display: flex; }
+
+    .result-score-ring {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      border: 4px solid var(--green);
+      gap: 4px;
+    }
+
+    .result-score-ring.medium { border-color: var(--orange); }
+    .result-score-ring.low { border-color: var(--red); }
+
+    .result-score-big {
+      font-size: 2.4rem;
+      font-weight: 700;
+    }
+
+    .result-score-ring .result-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .quiz-results h2 { font-size: 1.4rem; }
+    .quiz-results p { color: var(--text-muted); max-width: 380px; line-height: 1.6; }
+
+    .result-breakdown {
+      display: flex; gap: 32px;
+    }
+
+    .rb-item {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+
+    .rb-num { font-size: 1.5rem; font-weight: 700; }
+    .rb-num.green { color: var(--green); }
+    .rb-num.red { color: var(--red); }
+    .rb-label { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 600px) {
+      header { padding: 20px 16px 0; }
+      .card-face { padding: 28px 24px; }
+      .card-face.front .card-text { font-size: 1.05rem; }
+      .q-card { padding: 24px 20px; }
+      .q-text { font-size: 1rem; }
+      nav button { padding: 8px 16px; font-size: 0.88rem; }
+    }
+    /* ── GLOSSARY ─────────────────────────────────── */
+    .gl-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .gl-search {
+      width: 100%;
+      padding: 10px 16px 10px 40px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color .15s;
+      position: relative;
+    }
+    .gl-search:focus { border-color: var(--blue); }
+    .gl-search::placeholder { color: var(--text-muted); }
+
+    .gl-search-wrap {
+      position: relative;
+    }
+    .gl-search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+      font-size: 0.9rem;
+    }
+
+    .gl-filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .gl-filter {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      transition: all .15s;
+    }
+    .gl-filter:hover { border-color: var(--blue); color: var(--blue); }
+    .gl-filter.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .gl-filter[data-cat="basics"].active    { background: var(--blue);   border-color: var(--blue); }
+    .gl-filter[data-cat="branching"].active { background: var(--purple); border-color: var(--purple); }
+    .gl-filter[data-cat="remote"].active    { background: var(--green);  border-color: var(--green); }
+    .gl-filter[data-cat="advanced"].active  { background: var(--orange); border-color: var(--orange); }
+
+    .gl-count {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .gl-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .gl-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--blue);
+      border-radius: 8px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .gl-card[data-cat="basics"]    { border-left-color: var(--blue); }
+    .gl-card[data-cat="branching"] { border-left-color: var(--purple); }
+    .gl-card[data-cat="remote"]    { border-left-color: var(--green); }
+    .gl-card[data-cat="advanced"]  { border-left-color: var(--orange); }
+
+    .gl-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .gl-term {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .gl-alias {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .gl-badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-left: auto;
+    }
+    .gl-badge.basics    { background: rgba(88,166,255,.15);  color: var(--blue); }
+    .gl-badge.branching { background: rgba(188,140,255,.15); color: var(--purple); }
+    .gl-badge.remote    { background: rgba(63,185,80,.15);   color: var(--green); }
+    .gl-badge.advanced  { background: rgba(210,153,34,.15);  color: var(--orange); }
+
+    .gl-def {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .gl-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>
+    <span class="logo">⎇</span>
+    Git Crashcourse
+  </h1>
+  <p>Learn Git step by step - flashcards &amp; quiz</p>
+</header>
+
+<nav>
+  <button class="active" data-tab="flashcards">Flashcards</button>
+  <button data-tab="quiz">Quiz</button>
+  <button data-tab="glossary">Glossary</button>
+</nav>
+
+<main>
+
+  <!-- ── FLASHCARDS TAB ── -->
+  <div class="tab-pane active" id="flashcards">
+    <div class="fc-header">
+      <span class="fc-progress-text" id="fc-progress-text">Card 1 of 25</span>
+      <button class="btn-shuffle" id="btn-shuffle">⇄ Shuffle</button>
+    </div>
+    <div class="fc-progress-bar-wrap">
+      <div class="fc-progress-bar" id="fc-progress-bar" style="width:4%"></div>
+    </div>
+
+    <div class="card-scene" id="card-scene">
+      <div class="flip-card" id="flip-card">
+        <div class="card-face front">
+          <span class="card-q-num" id="fc-q-num">Q1</span>
+          <span class="card-label">Question</span>
+          <p class="card-text" id="fc-question">Loading…</p>
+          <span class="card-hint">click to reveal answer</span>
+        </div>
+        <div class="card-face back">
+          <span class="card-q-num" id="fc-q-num-back">Q1</span>
+          <span class="card-label">Answer</span>
+          <p class="card-text" id="fc-answer">Loading…</p>
+          <span class="card-hint">click to flip back</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-nav">
+      <button class="btn-nav" id="btn-prev" title="Previous (←)">←</button>
+      <span class="card-counter" id="card-counter">1 / 25</span>
+      <button class="btn-nav" id="btn-next-card" title="Next (→)">→</button>
+    </div>
+
+    <p class="kb-hint">
+      <kbd>←</kbd> prev &nbsp; <kbd>→</kbd> next &nbsp; <kbd>Space</kbd> flip
+    </p>
+  </div>
+
+  <!-- ── QUIZ TAB ── -->
+  <div class="tab-pane" id="quiz">
+
+    <div class="quiz-start" id="quiz-start">
+      <h2>Test your Git knowledge</h2>
+      <p>15 multiple-choice questions based on the flashcards. Choose the best answer for each question.</p>
+      <button class="btn-primary" id="btn-start-quiz">Start Quiz</button>
+    </div>
+
+    <div class="quiz-body" id="quiz-body">
+      <div class="q-progress">
+        <span class="q-progress-text" id="q-progress-text">1 / 15</span>
+        <div class="q-progress-bar-wrap">
+          <div class="q-progress-bar" id="q-progress-bar" style="width:0%"></div>
+        </div>
+        <span class="q-score-badge" id="q-score-badge">Score: 0</span>
+      </div>
+
+      <div class="q-card">
+        <div class="q-num" id="q-num">Question 1</div>
+        <div class="q-text" id="q-text">Loading…</div>
+        <div class="q-options" id="q-options"></div>
+        <div class="q-feedback" id="q-feedback"></div>
+      </div>
+
+      <button class="btn-next" id="btn-next-q">Next question →</button>
+    </div>
+
+    <div class="quiz-results" id="quiz-results">
+      <div class="result-score-ring" id="result-ring">
+        <span class="result-score-big" id="result-pct">0%</span>
+        <span class="result-label" id="result-fraction">0 / 15</span>
+      </div>
+      <h2 id="result-title">Well done!</h2>
+      <p id="result-msg"></p>
+      <div class="result-breakdown">
+        <div class="rb-item">
+          <span class="rb-num green" id="rb-correct">0</span>
+          <span class="rb-label">Correct</span>
+        </div>
+        <div class="rb-item">
+          <span class="rb-num red" id="rb-wrong">0</span>
+          <span class="rb-label">Wrong</span>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-retry">Try again</button>
+    </div>
+
+  </div>
+
+  <!-- ── GLOSSARY TAB ── -->
+  <div class="tab-pane" id="glossary">
+    <div class="gl-toolbar">
+      <div class="gl-search-wrap">
+        <span class="gl-search-icon">⌕</span>
+        <input class="gl-search" id="gl-search" type="text" placeholder="Search terms…" autocomplete="off" />
+      </div>
+      <div class="gl-filters">
+        <button class="gl-filter active" data-cat="all">All</button>
+        <button class="gl-filter" data-cat="basics">Basics</button>
+        <button class="gl-filter" data-cat="branching">Branching</button>
+        <button class="gl-filter" data-cat="remote">Remote</button>
+        <button class="gl-filter" data-cat="advanced">Advanced</button>
+      </div>
+    </div>
+    <div class="gl-count" id="gl-count"></div>
+    <div class="gl-list" id="gl-list"></div>
+  </div>
+
+</main>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+
+const CARDS = [
+  {
+    q: "What is version control and why do you need it?",
+    a: "Imagine saving an essay as “essay_v1”, “essay_v2”, “essay_FINAL”… Version control does that automatically and much smarter. It remembers every change you made, when you made it, and lets you go back to any earlier version whenever you want."
+  },
+  {
+    q: "What is the difference between Git and GitHub?",
+    a: "Git is a tool you install on your computer - it tracks changes locally. GitHub is a website where you upload your project so it's saved online and others can see or work on it. Git = the tool. GitHub = the cloud storage."
+  },
+  {
+    q: "What does \"local\" and \"remote\" mean in Git?",
+    a: "Local means your own computer. Remote means somewhere online (like GitHub). You work locally, then \"push\" your work to the remote so it's backed up and shareable."
+  },
+  {
+    q: "What does git init do?",
+    a: "It tells Git \"hey, start tracking this folder.\" You run it once when you start a new project. After this, Git watches that folder for any changes."
+  },
+  {
+    q: "What does git clone do?",
+    a: "It downloads a project from GitHub onto your computer - like clicking \"download\" but smarter. It also brings the full history of all changes ever made to that project."
+  },
+  {
+    q: "What does git status show?",
+    a: "It's like asking Git \"what's going on right now?\" It tells you which files you've changed, which ones are ready to be saved, and which ones Git isn't tracking yet."
+  },
+  {
+    q: "What does git add do?",
+    a: "Before saving your changes, you tell Git which ones you actually want to save. git add puts files into a \"box\" before sealing it. git add . adds everything at once."
+  },
+  {
+    q: "What does git reset do (when no commit is mentioned)?",
+    a: "It takes files back out of the \"box\" before you seal it. Your changes are still there - you just changed your mind about including them in the next save."
+  },
+  {
+    q: "What does git commit do?",
+    a: "This is the actual \"save\" button. It permanently records a snapshot of everything in your \"box\" with a short description of what you did. Think of it like saving a checkpoint in a video game."
+  },
+  {
+    q: "Why do you need to set up your name and email in Git?",
+    a: "Every commit is signed with who made it. Git needs your name and email so that when you work with others, everyone knows which changes belong to who."
+  },
+  {
+    q: "What does git reset HEAD~1 do?",
+    a: "It undoes your last commit - like pressing Ctrl+Z on a save. Your changes come back, but the \"checkpoint\" is removed. Useful if you accidentally committed too early."
+  },
+  {
+    q: "What is the difference between git rm and git rm --cached?",
+    a: "git rm deletes the file completely - from your computer and from Git. git rm --cached only tells Git to stop watching that file, but keeps it on your computer."
+  },
+  {
+    q: "What does git log show?",
+    a: "It shows the full history of all your saves (commits) - who saved what, when, and with what message. Like a diary of everything that happened in the project."
+  },
+  {
+    q: "What is a branch?",
+    a: "Imagine writing a book and wanting to try a completely different ending without messing up what you have. A branch is a separate copy of your project where you can experiment freely without touching the original."
+  },
+  {
+    q: "What does git checkout <branch> do?",
+    a: "It switches you to a different branch - like opening a different version of your project. Everything in your folder updates to match that branch."
+  },
+  {
+    q: "What does git merge do?",
+    a: "When you're happy with changes on your branch, git merge combines them back into the main project. Like finishing your alternate book ending and deciding to use it in the real book."
+  },
+  {
+    q: "What is a merge conflict?",
+    a: "This happens when two people (or two branches) changed the exact same line in a file differently, and Git doesn't know which one to keep. It stops and asks you to look at both versions and decide manually."
+  },
+  {
+    q: "What does git diff show?",
+    a: "It shows you exactly what changed between two versions of a file - line by line. Green lines were added, red lines were removed."
+  },
+  {
+    q: "What is the difference between git fetch and git pull?",
+    a: "git fetch checks if there's anything new on GitHub but doesn't change your files yet - it just looks. git pull fetches AND immediately updates your files. Pull = fetch + merge in one step."
+  },
+  {
+    q: "What does git push do?",
+    a: "It uploads your saved commits (checkpoints) from your computer to GitHub. Until you push, your work only exists on your machine."
+  },
+  {
+    q: "What does git restore do?",
+    a: "If you made changes to a file and thought \"actually I don't want this anymore,\" git restore throws away those changes and brings the file back to how it was at the last commit."
+  },
+  {
+    q: "What does git stash do?",
+    a: "You're in the middle of something but need to switch tasks. git stash is like putting your work in a drawer temporarily. Run git stash pop later to take it back out and continue."
+  },
+  {
+    q: "What is the difference between git revert and git reset?",
+    a: "Both undo things, but differently. git revert adds a new commit that cancels out an old one - history stays intact (safe for teams). git reset actually deletes commits from history - dangerous if others are working on the same project."
+  },
+  {
+    q: "What does git rebase do?",
+    a: "It tidies up your commit history. Instead of a messy web of merges, rebase replays your commits one by one on top of another branch, resulting in a clean straight line of history."
+  },
+  {
+    q: "What is a Pull Request (PR)?",
+    a: "When you've finished your work on a branch, you open a Pull Request on GitHub instead of merging it yourself. It's saying \"hey team, I made these changes - can someone review them first?\" Others can comment, request changes, and approve before it gets merged."
+  },
+];
+
+const QUIZ_QUESTIONS = [
+  {
+    text: "Which command tells Git to start tracking a folder?",
+    options: ["git start", "git init", "git begin", "git track"],
+    correct: 1,
+    explanation: "git init initializes a new Git repository in the current folder. You only run it once when starting a project."
+  },
+  {
+    text: "What does git clone do?",
+    options: [
+      "Creates a new empty repository",
+      "Downloads a project from GitHub including its full history",
+      "Copies files to a new branch",
+      "Merges two repositories together"
+    ],
+    correct: 1,
+    explanation: "git clone downloads the entire project from a remote URL, including all its commit history - not just the current files."
+  },
+  {
+    text: "What is the correct relationship between Git and GitHub?",
+    options: [
+      "They are the same thing",
+      "GitHub is the local tool, Git is the online platform",
+      "Git is the local tool, GitHub is the online platform for storing Git repos",
+      "GitHub is a command-line tool made by Microsoft"
+    ],
+    correct: 2,
+    explanation: "Git = the tool installed on your computer. GitHub = a website for hosting Git repositories online."
+  },
+  {
+    text: "What does git add . do?",
+    options: [
+      "Commits all changes with an automatic message",
+      "Stages all changed files for the next commit",
+      "Pushes all files to GitHub",
+      "Deletes all untracked files"
+    ],
+    correct: 1,
+    explanation: "git add moves files into the \"staging area\" - the box you're preparing before sealing it with a commit. The dot means \"everything\"."
+  },
+  {
+    text: "What does git commit -m \"message\" do?",
+    options: [
+      "Uploads changes to GitHub",
+      "Stages files for saving",
+      "Creates a new branch",
+      "Permanently records a snapshot of staged changes with a description"
+    ],
+    correct: 3,
+    explanation: "A commit is a saved checkpoint. It records exactly what was staged, who saved it, and when - along with your message explaining why."
+  },
+  {
+    text: "Which command shows the current state of your working directory and staging area?",
+    options: ["git log", "git diff", "git status", "git info"],
+    correct: 2,
+    explanation: "git status answers \"what's going on right now?\" - showing changed files, staged files, and untracked files."
+  },
+  {
+    text: "What does git push do?",
+    options: [
+      "Downloads the latest changes from GitHub",
+      "Creates a new branch on GitHub",
+      "Merges your local branch into main",
+      "Uploads your local commits to the remote repository on GitHub"
+    ],
+    correct: 3,
+    explanation: "Until you push, your commits only live on your machine. git push sends them to the remote so they're backed up and visible to others."
+  },
+  {
+    text: "What is a branch in Git?",
+    options: [
+      "A backup of your entire GitHub account",
+      "A separate line of development that doesn't affect other branches",
+      "A copy of a single commit",
+      "A type of merge strategy"
+    ],
+    correct: 1,
+    explanation: "A branch is like a parallel version of your project. You can experiment freely on a branch without touching the main line of work."
+  },
+  {
+    text: "What happens when there is a merge conflict?",
+    options: [
+      "Git automatically picks the newer version",
+      "Git deletes both conflicting versions to be safe",
+      "Git stops and requires you to manually decide which version to keep",
+      "The merge is permanently cancelled and cannot be retried"
+    ],
+    correct: 2,
+    explanation: "When two branches changed the same line differently, Git can't choose - it marks the conflict and waits for a human to resolve it."
+  },
+  {
+    text: "What is the key difference between git fetch and git pull?",
+    options: [
+      "They are identical - just different names",
+      "fetch updates your files, pull only downloads info",
+      "fetch only downloads new info without touching your files; pull fetches AND merges",
+      "fetch is for branches, pull is for individual files"
+    ],
+    correct: 2,
+    explanation: "git fetch is \"look but don't touch\" - you see what's new remotely. git pull = fetch + merge: it also updates your local files."
+  },
+  {
+    text: "What does git stash do?",
+    options: [
+      "Permanently deletes all uncommitted changes",
+      "Creates a new commit without a message",
+      "Temporarily shelves uncommitted changes so you can work on something else",
+      "Copies your current branch to GitHub"
+    ],
+    correct: 2,
+    explanation: "git stash saves your in-progress work to a temporary stack. Use git stash pop to restore it later."
+  },
+  {
+    text: "What does git log show?",
+    options: [
+      "Only the most recent commit",
+      "A list of all files currently tracked by Git",
+      "All branches in the repository",
+      "The complete history of all commits - who, when, and what message"
+    ],
+    correct: 3,
+    explanation: "git log is the project diary - every commit ever made, with author, timestamp, and message."
+  },
+  {
+    text: "Why is git revert considered safer than git reset when working with a team?",
+    options: [
+      "They are equally safe for team use",
+      "git reset is actually safer because it keeps history intact",
+      "git revert adds a new commit that undoes changes, keeping history intact; git reset deletes commits",
+      "git revert only works on local branches"
+    ],
+    correct: 2,
+    explanation: "git revert never rewrites history - it just adds a new \"undo\" commit. git reset deletes commits, which breaks things for teammates who already have those commits."
+  },
+  {
+    text: "What does git restore <file> do?",
+    options: [
+      "Restores a deleted branch",
+      "Recovers a deleted remote repository",
+      "Restores all files to their last committed state",
+      "Discards uncommitted changes in a file, reverting it to the last commit"
+    ],
+    correct: 3,
+    explanation: "git restore throws away your local edits to a file and brings it back to how it looked at the last commit."
+  },
+  {
+    text: "What is the purpose of a Pull Request (PR) on GitHub?",
+    options: [
+      "A command to download changes from a remote branch",
+      "A way to pull files from another developer's computer",
+      "A request for teammates to review your branch changes before merging them",
+      "An automated test that runs when you push code"
+    ],
+    correct: 2,
+    explanation: "A Pull Request is a formal code review process on GitHub. You say \"here's what I built\" and teammates can review, comment, and approve before it lands in main."
+  },
+];
+
+// ── FLASHCARDS ────────────────────────────────────────────────────────────────
+
+let fcOrder = CARDS.map((_, i) => i);
+let fcIndex = 0;
+let fcFlipped = false;
+
+const flipCard   = document.getElementById('flip-card');
+const fcQuestion = document.getElementById('fc-question');
+const fcAnswer   = document.getElementById('fc-answer');
+const fcQNum     = document.getElementById('fc-q-num');
+const fcQNumB    = document.getElementById('fc-q-num-back');
+const fcProgTxt  = document.getElementById('fc-progress-text');
+const fcProgBar  = document.getElementById('fc-progress-bar');
+const cardCounter= document.getElementById('card-counter');
+const btnPrev    = document.getElementById('btn-prev');
+const btnNextC   = document.getElementById('btn-next-card');
+
+function renderCard() {
+  const card = CARDS[fcOrder[fcIndex]];
+  const origNum = fcOrder[fcIndex] + 1;
+  fcQuestion.textContent = card.q;
+  fcAnswer.textContent   = card.a;
+  fcQNum.textContent     = `Q${origNum}`;
+  fcQNumB.textContent    = `Q${origNum}`;
+  fcProgTxt.textContent  = `Card ${fcIndex + 1} of ${CARDS.length}`;
+  cardCounter.textContent= `${fcIndex + 1} / ${CARDS.length}`;
+  fcProgBar.style.width  = `${((fcIndex + 1) / CARDS.length) * 100}%`;
+  btnPrev.disabled  = fcIndex === 0;
+  btnNextC.disabled = fcIndex === CARDS.length - 1;
+
+  // reset flip without animation flash
+  flipCard.style.transition = 'none';
+  flipCard.classList.remove('flipped');
+  fcFlipped = false;
+  setTimeout(() => flipCard.style.transition = '', 30);
+}
+
+document.getElementById('card-scene').addEventListener('click', () => {
+  fcFlipped = !fcFlipped;
+  flipCard.classList.toggle('flipped', fcFlipped);
+});
+
+btnPrev.addEventListener('click', e => { e.stopPropagation(); if (fcIndex > 0) { fcIndex--; renderCard(); } });
+btnNextC.addEventListener('click', e => { e.stopPropagation(); if (fcIndex < CARDS.length - 1) { fcIndex++; renderCard(); } });
+
+document.getElementById('btn-shuffle').addEventListener('click', () => {
+  for (let i = fcOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [fcOrder[i], fcOrder[j]] = [fcOrder[j], fcOrder[i]];
+  }
+  fcIndex = 0;
+  renderCard();
+});
+
+document.addEventListener('keydown', e => {
+  const fcTab = document.getElementById('flashcards');
+  if (!fcTab.classList.contains('active')) return;
+  if (e.key === 'ArrowLeft')  { if (fcIndex > 0) { fcIndex--; renderCard(); } }
+  if (e.key === 'ArrowRight') { if (fcIndex < CARDS.length - 1) { fcIndex++; renderCard(); } }
+  if (e.key === ' ') {
+    e.preventDefault();
+    fcFlipped = !fcFlipped;
+    flipCard.classList.toggle('flipped', fcFlipped);
+  }
+});
+
+renderCard();
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
+
+let quizOrder = [];
+let qIndex    = 0;
+let qScore    = 0;
+let qAnswered = false;
+
+function shuffleQuiz() {
+  quizOrder = QUIZ_QUESTIONS.map((_, i) => i);
+  for (let i = quizOrder.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [quizOrder[i], quizOrder[j]] = [quizOrder[j], quizOrder[i]];
+  }
+}
+
+function startQuiz() {
+  shuffleQuiz();
+  qIndex    = 0;
+  qScore    = 0;
+  qAnswered = false;
+
+  document.getElementById('quiz-start').style.display   = 'none';
+  document.getElementById('quiz-body').style.display    = 'block';
+  document.getElementById('quiz-results').classList.remove('show');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUIZ_QUESTIONS[quizOrder[qIndex]];
+  qAnswered = false;
+
+  document.getElementById('q-num').textContent   = `Question ${qIndex + 1} of ${quizOrder.length}`;
+  document.getElementById('q-text').textContent  = q.text;
+  document.getElementById('q-score-badge').textContent = `Score: ${qScore}`;
+  document.getElementById('q-progress-text').textContent = `${qIndex + 1} / ${quizOrder.length}`;
+  document.getElementById('q-progress-bar').style.width = `${(qIndex / quizOrder.length) * 100}%`;
+
+  const feedback = document.getElementById('q-feedback');
+  feedback.className = 'q-feedback';
+  feedback.innerHTML = '';
+
+  const btnNext = document.getElementById('btn-next-q');
+  btnNext.className = 'btn-next';
+  btnNext.textContent = qIndex === quizOrder.length - 1 ? 'See results' : 'Next question →';
+
+  const optContainer = document.getElementById('q-options');
+  optContainer.innerHTML = '';
+
+  // Shuffle answer options
+  const indices = q.options.map((_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+
+  indices.forEach(i => {
+    const btn = document.createElement('button');
+    btn.className = 'q-option';
+    btn.dataset.index = i;
+
+    const icon = document.createElement('span');
+    icon.className = 'opt-icon';
+    const letters = ['A','B','C','D'];
+    icon.textContent = letters[indices.indexOf(i)];
+
+    const txt = document.createElement('span');
+    txt.textContent = q.options[i];
+
+    btn.appendChild(icon);
+    btn.appendChild(txt);
+
+    btn.addEventListener('click', () => handleAnswer(i, q));
+    optContainer.appendChild(btn);
+  });
+}
+
+function handleAnswer(chosen, q) {
+  if (qAnswered) return;
+  qAnswered = true;
+
+  const allBtns = document.querySelectorAll('.q-option');
+  allBtns.forEach(btn => {
+    btn.disabled = true;
+    const idx = parseInt(btn.dataset.index);
+    if (idx === q.correct)  btn.classList.add('correct');
+    if (idx === chosen && chosen !== q.correct) btn.classList.add('wrong');
+  });
+
+  const feedback = document.getElementById('q-feedback');
+  if (chosen === q.correct) {
+    qScore++;
+    feedback.className = 'q-feedback ok show';
+    feedback.innerHTML = `<strong>Correct!</strong> ${q.explanation}`;
+    document.getElementById('q-score-badge').textContent = `Score: ${qScore}`;
+  } else {
+    feedback.className = 'q-feedback nope show';
+    feedback.innerHTML = `<strong>Not quite.</strong> ${q.explanation}`;
+  }
+
+  document.getElementById('btn-next-q').classList.add('show');
+}
+
+document.getElementById('btn-next-q').addEventListener('click', () => {
+  qIndex++;
+  if (qIndex >= quizOrder.length) {
+    showResults();
+  } else {
+    renderQuestion();
+  }
+});
+
+function showResults() {
+  document.getElementById('quiz-body').style.display = 'none';
+
+  const total = quizOrder.length;
+  const pct   = Math.round((qScore / total) * 100);
+  const ring  = document.getElementById('result-ring');
+
+  document.getElementById('result-pct').textContent      = `${pct}%`;
+  document.getElementById('result-fraction').textContent  = `${qScore} / ${total}`;
+  document.getElementById('rb-correct').textContent       = qScore;
+  document.getElementById('rb-wrong').textContent         = total - qScore;
+
+  ring.className = 'result-score-ring';
+  if (pct >= 80) {
+    ring.classList.add('high');
+    document.getElementById('result-title').textContent = pct === 100 ? 'Perfect score! 🎯' : 'Great job!';
+    document.getElementById('result-msg').textContent   = 'You have a solid understanding of Git basics. Ready to use it on real projects!';
+  } else if (pct >= 50) {
+    ring.classList.add('medium');
+    document.getElementById('result-title').textContent = 'Getting there!';
+    document.getElementById('result-msg').textContent   = 'You know quite a bit, but a few concepts need another look. Go over the flashcards and try again!';
+  } else {
+    ring.classList.add('low');
+    document.getElementById('result-title').textContent = 'Keep studying!';
+    document.getElementById('result-msg').textContent   = 'Git has a learning curve - that\'s normal. Review the flashcards a few more times and give the quiz another shot.';
+  }
+
+  document.getElementById('quiz-results').classList.add('show');
+}
+
+document.getElementById('btn-start-quiz').addEventListener('click', startQuiz);
+document.getElementById('btn-retry').addEventListener('click', () => {
+  document.getElementById('quiz-results').classList.remove('show');
+  startQuiz();
+});
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── GLOSSARY ─────────────────────────────────────────────────────────────────
+
+const GLOSSARY = [
+  // BASICS
+  { term: 'repository', alias: 'repo', cat: 'basics',
+    def: 'A folder tracked by Git. It contains all your project files plus the complete history of every change ever made to them.' },
+  { term: 'commit', alias: null, cat: 'basics',
+    def: 'A saved snapshot of your project at a specific moment. Every commit has a unique ID, an author, a timestamp, and a message describing what changed.' },
+  { term: 'working directory', alias: null, cat: 'basics',
+    def: 'The actual folder on your computer where you edit files. Changes here are not tracked until you explicitly stage and commit them.' },
+  { term: 'staging area', alias: 'index', cat: 'basics',
+    def: 'A preparation zone between your working directory and a commit. You add files here with git add before sealing them into a commit.' },
+  { term: 'HEAD', alias: null, cat: 'basics',
+    def: 'A special pointer that marks where you currently are in the commit history - usually the latest commit on your active branch.' },
+  { term: '.gitignore', alias: null, cat: 'basics',
+    def: 'A plain text file listing patterns of files Git should completely ignore - things like build outputs, log files, or local config with passwords.' },
+  { term: 'hash', alias: 'SHA / commit ID', cat: 'basics',
+    def: 'A unique 40-character fingerprint (e.g. a3f2c1d…) automatically generated for every commit. It is how Git identifies and references specific commits.' },
+  { term: 'tag', alias: null, cat: 'basics',
+    def: 'A permanent label attached to a specific commit. Typically used to mark release versions - e.g. v1.0.0.' },
+  { term: 'diff', alias: null, cat: 'basics',
+    def: 'A line-by-line comparison between two versions of a file. Lines starting with + were added, lines starting with − were removed.' },
+
+  // BRANCHING
+  { term: 'branch', alias: null, cat: 'branching',
+    def: 'A parallel, independent line of development. Changes on one branch do not affect other branches until you explicitly merge them.' },
+  { term: 'main', alias: 'master', cat: 'branching',
+    def: 'The default primary branch of a repository. Conventionally the stable version of the project. Older repos use "master"; newer ones use "main".' },
+  { term: 'merge', alias: null, cat: 'branching',
+    def: 'Combining the changes from one branch into another. Git creates a new "merge commit" that ties together the two lines of history.' },
+  { term: 'merge conflict', alias: null, cat: 'branching',
+    def: 'Occurs when two branches both modified the same part of a file differently. Git cannot decide which version is correct and pauses for a human to resolve it.' },
+  { term: 'rebase', alias: null, cat: 'branching',
+    def: 'Replaying commits from one branch on top of another. Produces a clean, linear history instead of a web of merge commits. Avoid on shared branches.' },
+  { term: 'checkout', alias: null, cat: 'branching',
+    def: 'Switching to a different branch or a specific commit. Your working directory updates to match the target.' },
+  { term: 'detached HEAD', alias: null, cat: 'branching',
+    def: 'A state where HEAD points directly to a commit instead of a branch. Any commits made here are "floating" - not on any named branch.' },
+  { term: 'cherry-pick', alias: null, cat: 'branching',
+    def: 'Applying a specific commit from one branch onto another, without merging the whole branch.' },
+
+  // REMOTE
+  { term: 'remote', alias: null, cat: 'remote',
+    def: 'A version of your repository stored somewhere online - typically GitHub, GitLab, or Bitbucket. You synchronise with it via push, pull, and fetch.' },
+  { term: 'origin', alias: null, cat: 'remote',
+    def: 'The default name Git gives to the remote repository you cloned from. You can have multiple remotes, but origin is the conventional primary one.' },
+  { term: 'clone', alias: null, cat: 'remote',
+    def: 'Downloading a full copy of a remote repository - including all files, branches, and commit history - onto your local machine.' },
+  { term: 'push', alias: null, cat: 'remote',
+    def: 'Uploading your local commits to a remote repository. Until you push, your commits only exist on your machine.' },
+  { term: 'pull', alias: null, cat: 'remote',
+    def: 'Downloading changes from a remote repository AND merging them into your current local branch. Equivalent to running git fetch + git merge.' },
+  { term: 'fetch', alias: null, cat: 'remote',
+    def: 'Downloading new commits and metadata from a remote without touching your local branches. A safe "look but don\'t touch" operation.' },
+  { term: 'fork', alias: null, cat: 'remote',
+    def: 'A personal copy of someone else\'s repository on GitHub. Lets you freely experiment without affecting the original. Used when contributing to open-source projects.' },
+  { term: 'pull request', alias: 'PR / merge request', cat: 'remote',
+    def: 'A GitHub feature for proposing changes. You ask teammates to review your branch before it is merged into the main codebase. The standard way teams collaborate.' },
+  { term: 'issue', alias: null, cat: 'remote',
+    def: 'A GitHub feature for tracking tasks, bugs, feature requests, or any discussion tied to a project. Anyone can open an issue, leave comments, assign people to it, label it, and close it when resolved. Issues are the main way teams communicate about what needs to be done.' },
+  { term: 'upstream', alias: null, cat: 'remote',
+    def: 'The original repository that a fork was created from. When contributing to open source, you add the original as the "upstream" remote to stay in sync.' },
+
+  // ADVANCED
+  { term: 'stash', alias: null, cat: 'advanced',
+    def: 'Temporarily saving uncommitted changes to a stack so you can switch context. Run git stash pop to restore them later.' },
+  { term: 'revert', alias: null, cat: 'advanced',
+    def: 'Creating a new commit that undoes the changes from a previous commit. Safe for shared branches because it never rewrites history.' },
+  { term: 'reset', alias: null, cat: 'advanced',
+    def: 'Moving HEAD (and optionally the staging area or working directory) back to an earlier commit. Can permanently erase commits - dangerous on shared branches.' },
+  { term: 'amend', alias: null, cat: 'advanced',
+    def: 'Modifying the most recent commit - either its message, its files, or both. Only safe if you have not yet pushed that commit.' },
+  { term: 'squash', alias: null, cat: 'advanced',
+    def: 'Combining multiple commits into a single one. Often done before merging a feature branch to keep the main history clean.' },
+  { term: 'reflog', alias: null, cat: 'advanced',
+    def: 'A local log of everywhere HEAD has been. A safety net that lets you recover commits even after a reset or accidental deletion.' },
+];
+
+const CAT_LABELS = { basics: 'Basics', branching: 'Branching', remote: 'Remote', advanced: 'Advanced' };
+let glActiveCat = 'all';
+let glSearch = '';
+
+function renderGlossary() {
+  const q = glSearch.toLowerCase();
+  const items = GLOSSARY.filter(item => {
+    const catOk = glActiveCat === 'all' || item.cat === glActiveCat;
+    const searchOk = !q
+      || item.term.toLowerCase().includes(q)
+      || (item.alias && item.alias.toLowerCase().includes(q))
+      || item.def.toLowerCase().includes(q);
+    return catOk && searchOk;
+  });
+
+  document.getElementById('gl-count').textContent = `${items.length} term${items.length !== 1 ? 's' : ''}`;
+
+  const list = document.getElementById('gl-list');
+  if (items.length === 0) {
+    list.innerHTML = '<div class="gl-empty">No terms match your search.</div>';
+    return;
+  }
+
+  list.innerHTML = items.map(item => `
+    <div class="gl-card" data-cat="${item.cat}">
+      <div class="gl-card-header">
+        <span class="gl-term">${item.term}</span>
+        ${item.alias ? `<span class="gl-alias">/ ${item.alias}</span>` : ''}
+        <span class="gl-badge ${item.cat}">${CAT_LABELS[item.cat]}</span>
+      </div>
+      <p class="gl-def">${item.def}</p>
+    </div>
+  `).join('');
+}
+
+document.getElementById('gl-search').addEventListener('input', e => {
+  glSearch = e.target.value;
+  renderGlossary();
+});
+
+document.querySelectorAll('.gl-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.gl-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    glActiveCat = btn.dataset.cat;
+    renderGlossary();
+  });
+});
+
+renderGlossary();
+</script>
+
+</body>
+</html>
