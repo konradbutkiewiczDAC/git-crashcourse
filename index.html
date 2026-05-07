@@ -786,9 +786,10 @@
 // ── DATA ──────────────────────────────────────────────────────────────────────
 
 const CARDS = [
+  // ── CONCEPTS ──────────────────────────────────────────────────────────────
   {
     q: "What is version control and why do you need it?",
-    a: "Imagine saving an essay as “essay_v1”, “essay_v2”, “essay_FINAL”… Version control does that automatically and much smarter. It remembers every change you made, when you made it, and lets you go back to any earlier version whenever you want."
+    a: "Imagine saving an essay as 'essay_v1', 'essay_v2', 'essay_FINAL'... Version control does that automatically and much smarter. It remembers every change you made, when you made it, and lets you go back to any earlier version whenever you want."
   },
   {
     q: "What is the difference between Git and GitHub?",
@@ -798,6 +799,11 @@ const CARDS = [
     q: "What does \"local\" and \"remote\" mean in Git?",
     a: "Local means your own computer. Remote means somewhere online (like GitHub). You work locally, then \"push\" your work to the remote so it's backed up and shareable."
   },
+  // ── FIRST SETUP ───────────────────────────────────────────────────────────
+  {
+    q: "Why do you need to set up your name and email in Git?",
+    a: "Every commit is signed with who made it. Git needs your name and email so that when you work with others, everyone knows which changes belong to who."
+  },
   {
     q: "What does git init do?",
     a: "It tells Git \"hey, start tracking this folder.\" You run it once when you start a new project. After this, Git watches that folder for any changes."
@@ -806,6 +812,7 @@ const CARDS = [
     q: "What does git clone do?",
     a: "It downloads a project from GitHub onto your computer - like clicking \"download\" but smarter. It also brings the full history of all changes ever made to that project."
   },
+  // ── BASIC DAILY WORKFLOW ──────────────────────────────────────────────────
   {
     q: "What does git status show?",
     a: "It's like asking Git \"what's going on right now?\" It tells you which files you've changed, which ones are ready to be saved, and which ones Git isn't tracking yet."
@@ -815,29 +822,44 @@ const CARDS = [
     a: "Before saving your changes, you tell Git which ones you actually want to save. git add puts files into a \"box\" before sealing it. git add . adds everything at once."
   },
   {
-    q: "What does git reset do (when no commit is mentioned)?",
-    a: "It takes files back out of the \"box\" before you seal it. Your changes are still there - you just changed your mind about including them in the next save."
-  },
-  {
     q: "What does git commit do?",
     a: "This is the actual \"save\" button. It permanently records a snapshot of everything in your \"box\" with a short description of what you did. Think of it like saving a checkpoint in a video game."
-  },
-  {
-    q: "Why do you need to set up your name and email in Git?",
-    a: "Every commit is signed with who made it. Git needs your name and email so that when you work with others, everyone knows which changes belong to who."
-  },
-  {
-    q: "What does git reset HEAD~1 do?",
-    a: "It undoes your last commit - like pressing Ctrl+Z on a save. Your changes come back, but the \"checkpoint\" is removed. Useful if you accidentally committed too early."
-  },
-  {
-    q: "What is the difference between git rm and git rm --cached?",
-    a: "git rm deletes the file completely - from your computer and from Git. git rm --cached only tells Git to stop watching that file, but keeps it on your computer."
   },
   {
     q: "What does git log show?",
     a: "It shows the full history of all your saves (commits) - who saved what, when, and with what message. Like a diary of everything that happened in the project."
   },
+  {
+    q: "What does git diff show?",
+    a: "It shows you exactly what changed between two versions of a file - line by line. Green lines were added, red lines were removed."
+  },
+  // ── UNDOING THINGS ────────────────────────────────────────────────────────
+  {
+    q: "What does git restore do?",
+    a: "If you made changes to a file and thought \"actually I don't want this anymore,\" git restore throws away those changes and brings the file back to how it was at the last commit."
+  },
+  {
+    q: "What does git reset do (when no commit is mentioned)?",
+    a: "It takes files back out of the \"box\" before you seal it. Your changes are still there - you just changed your mind about including them in the next save."
+  },
+  {
+    q: "What does git reset HEAD~1 do?",
+    a: "It undoes your last commit - like pressing Ctrl+Z on a save. Your changes come back, but the \"checkpoint\" is removed. Useful if you accidentally committed too early."
+  },
+  // ── REMOTE WORKFLOW ───────────────────────────────────────────────────────
+  {
+    q: "What does git push do?",
+    a: "It uploads your saved commits (checkpoints) from your computer to GitHub. Until you push, your work only exists on your machine."
+  },
+  {
+    q: "What is the difference between git fetch and git pull?",
+    a: "git fetch checks if there's anything new on GitHub but doesn't change your files yet - it just looks. git pull fetches AND immediately updates your files. Pull = fetch + merge in one step."
+  },
+  {
+    q: "What is the difference between git rm and git rm --cached?",
+    a: "git rm deletes the file completely - from your computer and from Git. git rm --cached only tells Git to stop watching that file, but keeps it on your computer."
+  },
+  // ── BRANCHING ─────────────────────────────────────────────────────────────
   {
     q: "What is a branch?",
     a: "Imagine writing a book and wanting to try a completely different ending without messing up what you have. A branch is a separate copy of your project where you can experiment freely without touching the original."
@@ -854,21 +876,10 @@ const CARDS = [
     q: "What is a merge conflict?",
     a: "This happens when two people (or two branches) changed the exact same line in a file differently, and Git doesn't know which one to keep. It stops and asks you to look at both versions and decide manually."
   },
+  // ── COLLABORATION & ADVANCED ──────────────────────────────────────────────
   {
-    q: "What does git diff show?",
-    a: "It shows you exactly what changed between two versions of a file - line by line. Green lines were added, red lines were removed."
-  },
-  {
-    q: "What is the difference between git fetch and git pull?",
-    a: "git fetch checks if there's anything new on GitHub but doesn't change your files yet - it just looks. git pull fetches AND immediately updates your files. Pull = fetch + merge in one step."
-  },
-  {
-    q: "What does git push do?",
-    a: "It uploads your saved commits (checkpoints) from your computer to GitHub. Until you push, your work only exists on your machine."
-  },
-  {
-    q: "What does git restore do?",
-    a: "If you made changes to a file and thought \"actually I don't want this anymore,\" git restore throws away those changes and brings the file back to how it was at the last commit."
+    q: "What is a Pull Request (PR)?",
+    a: "When you've finished your work on a branch, you open a Pull Request on GitHub instead of merging it yourself. It's saying \"hey team, I made these changes - can someone review them first?\" Others can comment, request changes, and approve before it gets merged."
   },
   {
     q: "What does git stash do?",
@@ -882,13 +893,22 @@ const CARDS = [
     q: "What does git rebase do?",
     a: "It tidies up your commit history. Instead of a messy web of merges, rebase replays your commits one by one on top of another branch, resulting in a clean straight line of history."
   },
-  {
-    q: "What is a Pull Request (PR)?",
-    a: "When you've finished your work on a branch, you open a Pull Request on GitHub instead of merging it yourself. It's saying \"hey team, I made these changes - can someone review them first?\" Others can comment, request changes, and approve before it gets merged."
-  },
 ];
 
 const QUIZ_QUESTIONS = [
+  // ── CONCEPTS ──────────────────────────────────────────────────────────────
+  {
+    text: "What is the correct relationship between Git and GitHub?",
+    options: [
+      "They are the same thing",
+      "GitHub is the local tool, Git is the online platform",
+      "Git is the local tool, GitHub is the online platform for storing Git repos",
+      "GitHub is a command-line tool made by Microsoft"
+    ],
+    correct: 2,
+    explanation: "Git = the tool installed on your computer. GitHub = a website for hosting Git repositories online."
+  },
+  // ── BASIC SETUP & FIRST COMMANDS ──────────────────────────────────────────
   {
     text: "Which command tells Git to start tracking a folder?",
     options: ["git start", "git init", "git begin", "git track"],
@@ -906,16 +926,12 @@ const QUIZ_QUESTIONS = [
     correct: 1,
     explanation: "git clone downloads the entire project from a remote URL, including all its commit history - not just the current files."
   },
+  // ── DAILY WORKFLOW ────────────────────────────────────────────────────────
   {
-    text: "What is the correct relationship between Git and GitHub?",
-    options: [
-      "They are the same thing",
-      "GitHub is the local tool, Git is the online platform",
-      "Git is the local tool, GitHub is the online platform for storing Git repos",
-      "GitHub is a command-line tool made by Microsoft"
-    ],
+    text: "Which command shows the current state of your working directory and staging area?",
+    options: ["git log", "git diff", "git status", "git info"],
     correct: 2,
-    explanation: "Git = the tool installed on your computer. GitHub = a website for hosting Git repositories online."
+    explanation: "git status answers \"what's going on right now?\" - showing changed files, staged files, and untracked files."
   },
   {
     text: "What does git add . do?",
@@ -940,11 +956,17 @@ const QUIZ_QUESTIONS = [
     explanation: "A commit is a saved checkpoint. It records exactly what was staged, who saved it, and when - along with your message explaining why."
   },
   {
-    text: "Which command shows the current state of your working directory and staging area?",
-    options: ["git log", "git diff", "git status", "git info"],
-    correct: 2,
-    explanation: "git status answers \"what's going on right now?\" - showing changed files, staged files, and untracked files."
+    text: "What does git log show?",
+    options: [
+      "Only the most recent commit",
+      "A list of all files currently tracked by Git",
+      "All branches in the repository",
+      "The complete history of all commits - who, when, and what message"
+    ],
+    correct: 3,
+    explanation: "git log is the project diary - every commit ever made, with author, timestamp, and message."
   },
+  // ── REMOTE WORKFLOW ───────────────────────────────────────────────────────
   {
     text: "What does git push do?",
     options: [
@@ -957,6 +979,18 @@ const QUIZ_QUESTIONS = [
     explanation: "Until you push, your commits only live on your machine. git push sends them to the remote so they're backed up and visible to others."
   },
   {
+    text: "What does git restore <file> do?",
+    options: [
+      "Restores a deleted branch",
+      "Recovers a deleted remote repository",
+      "Restores all files to their last committed state",
+      "Discards uncommitted changes in a file, reverting it to the last commit"
+    ],
+    correct: 3,
+    explanation: "git restore throws away your local edits to a file and brings it back to how it looked at the last commit."
+  },
+  // ── BRANCHING ─────────────────────────────────────────────────────────────
+  {
     text: "What is a branch in Git?",
     options: [
       "A backup of your entire GitHub account",
@@ -966,17 +1000,6 @@ const QUIZ_QUESTIONS = [
     ],
     correct: 1,
     explanation: "A branch is like a parallel version of your project. You can experiment freely on a branch without touching the main line of work."
-  },
-  {
-    text: "What happens when there is a merge conflict?",
-    options: [
-      "Git automatically picks the newer version",
-      "Git deletes both conflicting versions to be safe",
-      "Git stops and requires you to manually decide which version to keep",
-      "The merge is permanently cancelled and cannot be retried"
-    ],
-    correct: 2,
-    explanation: "When two branches changed the same line differently, Git can't choose - it marks the conflict and waits for a human to resolve it."
   },
   {
     text: "What is the key difference between git fetch and git pull?",
@@ -990,6 +1013,29 @@ const QUIZ_QUESTIONS = [
     explanation: "git fetch is \"look but don't touch\" - you see what's new remotely. git pull = fetch + merge: it also updates your local files."
   },
   {
+    text: "What happens when there is a merge conflict?",
+    options: [
+      "Git automatically picks the newer version",
+      "Git deletes both conflicting versions to be safe",
+      "Git stops and requires you to manually decide which version to keep",
+      "The merge is permanently cancelled and cannot be retried"
+    ],
+    correct: 2,
+    explanation: "When two branches changed the same line differently, Git can't choose - it marks the conflict and waits for a human to resolve it."
+  },
+  // ── COLLABORATION & ADVANCED ──────────────────────────────────────────────
+  {
+    text: "What is the purpose of a Pull Request (PR) on GitHub?",
+    options: [
+      "A command to download changes from a remote branch",
+      "A way to pull files from another developer's computer",
+      "A request for teammates to review your branch changes before merging them",
+      "An automated test that runs when you push code"
+    ],
+    correct: 2,
+    explanation: "A Pull Request is a formal code review process on GitHub. You say \"here's what I built\" and teammates can review, comment, and approve before it lands in main."
+  },
+  {
     text: "What does git stash do?",
     options: [
       "Permanently deletes all uncommitted changes",
@@ -1001,17 +1047,6 @@ const QUIZ_QUESTIONS = [
     explanation: "git stash saves your in-progress work to a temporary stack. Use git stash pop to restore it later."
   },
   {
-    text: "What does git log show?",
-    options: [
-      "Only the most recent commit",
-      "A list of all files currently tracked by Git",
-      "All branches in the repository",
-      "The complete history of all commits - who, when, and what message"
-    ],
-    correct: 3,
-    explanation: "git log is the project diary - every commit ever made, with author, timestamp, and message."
-  },
-  {
     text: "Why is git revert considered safer than git reset when working with a team?",
     options: [
       "They are equally safe for team use",
@@ -1021,28 +1056,6 @@ const QUIZ_QUESTIONS = [
     ],
     correct: 2,
     explanation: "git revert never rewrites history - it just adds a new \"undo\" commit. git reset deletes commits, which breaks things for teammates who already have those commits."
-  },
-  {
-    text: "What does git restore <file> do?",
-    options: [
-      "Restores a deleted branch",
-      "Recovers a deleted remote repository",
-      "Restores all files to their last committed state",
-      "Discards uncommitted changes in a file, reverting it to the last commit"
-    ],
-    correct: 3,
-    explanation: "git restore throws away your local edits to a file and brings it back to how it looked at the last commit."
-  },
-  {
-    text: "What is the purpose of a Pull Request (PR) on GitHub?",
-    options: [
-      "A command to download changes from a remote branch",
-      "A way to pull files from another developer's computer",
-      "A request for teammates to review your branch changes before merging them",
-      "An automated test that runs when you push code"
-    ],
-    correct: 2,
-    explanation: "A Pull Request is a formal code review process on GitHub. You say \"here's what I built\" and teammates can review, comment, and approve before it lands in main."
   },
 ];
 
